@@ -1,48 +1,31 @@
 name: ChatGPT Creator Bot
 
-# Menentukan kapan skrip ini berjalan
 on:
-  workflow_dispatch: # Memunculkan tombol "Run workflow" manual di tab Actions
+  workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *' # Otomatis berjalan setiap hari jam 00:00 UTC
+    - cron: '0 0 * * *'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest # Menggunakan sistem Linux Ubuntu
-
+  run-bot-job:
+    runs-on: ubuntu-latest
     steps:
-      # 1. Mengambil kode dari repositori GitHub Anda
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Menyiapkan lingkungan Node.js versi 20
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # 3. Menginstal library yang ada di package.json
-      - name: Install Dependencies
-        run: npm install
+      - name: Install
+        run: |
+          npm install
+          npx playwright install firefox --with-deps
 
-      # 4. Menginstal browser Firefox dan dependensi sistem Linux
-      - name: Install Playwright Browsers
-        run: npx playwright install firefox --with-deps
-
-      # 5. Menjalankan skrip pendaftaran akun
-      - name: Run ChatGPT Account Creator
+      - name: Execute
         run: node chatgpt_account_creator.js
         env:
-          # Mengambil data dari Settings > Secrets > Actions
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           PASSWORD: ${{ secrets.PASSWORD }}
           NUM_ACCOUNTS: "1"
-
-      # 6. Mengunggah screenshot jika terjadi error (untuk debugging)
-      - name: Upload Error Screenshot
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: error_*.png
