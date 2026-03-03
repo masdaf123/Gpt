@@ -1,0 +1,31 @@
+name: ChatGPT Creator
+on:
+  workflow_dispatch: # Jalankan manual dari tab Actions
+  schedule:
+    - cron: '0 0 * * *' # Otomatis tiap jam 12 malam
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Dependencies
+        run: npm install
+      - name: Install Playwright Firefox
+        run: npx playwright install firefox --with-deps
+      - name: Run Bot
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          NUM_ACCOUNTS: "1"
+        run: node chatgpt_account_creator.js
+      - name: Upload Screenshot on Failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: error-screenshots
+          path: error_*.png
