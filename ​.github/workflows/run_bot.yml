@@ -1,31 +1,48 @@
-name: ChatGPT Creator
+name: ChatGPT Creator Bot
+
+# Menentukan kapan skrip ini berjalan
 on:
-  workflow_dispatch: # Jalankan manual dari tab Actions
+  workflow_dispatch: # Memunculkan tombol "Run workflow" manual di tab Actions
   schedule:
-    - cron: '0 0 * * *' # Otomatis tiap jam 12 malam
+    - cron: '0 0 * * *' # Otomatis berjalan setiap hari jam 00:00 UTC
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Menggunakan sistem Linux Ubuntu
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # 1. Mengambil kode dari repositori GitHub Anda
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Menyiapkan lingkungan Node.js versi 20
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      # 3. Menginstal library yang ada di package.json
       - name: Install Dependencies
         run: npm install
-      - name: Install Playwright Firefox
+
+      # 4. Menginstal browser Firefox dan dependensi sistem Linux
+      - name: Install Playwright Browsers
         run: npx playwright install firefox --with-deps
-      - name: Run Bot
+
+      # 5. Menjalankan skrip pendaftaran akun
+      - name: Run ChatGPT Account Creator
+        run: node chatgpt_account_creator.js
         env:
+          # Mengambil data dari Settings > Secrets > Actions
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           PASSWORD: ${{ secrets.PASSWORD }}
           NUM_ACCOUNTS: "1"
-        run: node chatgpt_account_creator.js
-      - name: Upload Screenshot on Failure
-        uses: actions/upload-artifact@v4
+
+      # 6. Mengunggah screenshot jika terjadi error (untuk debugging)
+      - name: Upload Error Screenshot
         if: failure()
+        uses: actions/upload-artifact@v4
         with:
-          name: error-screenshots
+          name: screenshots
           path: error_*.png
