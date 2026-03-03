@@ -1,0 +1,31 @@
+name: ChatGPT Creator Bot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  run-bot-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install
+        run: |
+          npm install
+          npx playwright install firefox --with-deps
+
+      - name: Execute
+        run: node chatgpt_account_creator.js
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          NUM_ACCOUNTS: "1"
